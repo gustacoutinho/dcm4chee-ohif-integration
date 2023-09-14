@@ -23,13 +23,13 @@ services:
     ports:
       - "5433:5432"
     environment:
-      POSTGRES_DB: pacsdb_g2i
-      POSTGRES_USER: pacs
-      POSTGRES_PASSWORD: pacs
+      POSTGRES_DB: pacsdb
+      POSTGRES_USER: password
+      POSTGRES_PASSWORD: password
     volumes:
       - ./etc/localtime:/etc/localtime:ro
       - ./etc/timezone:/etc/timezone:ro
-      - ./dcm4chee-arc/db:/var/lib/postgresql/data #voluma que armazena os dados do banco
+      - ./dcm4chee-arc/db:/var/lib/postgresql/data #volume que armazena os dados do banco
     restart: always
   arc:
     image: dcm4che/dcm4chee-arc-psql:5.30.0
@@ -47,13 +47,13 @@ services:
       - "2575:2575"
       - "12575:12575"
     environment:
-      POSTGRES_DB: pacsdb_g2i
-      POSTGRES_USER: pacs
-      POSTGRES_PASSWORD: pacs
+      POSTGRES_DB: pacsdb
+      POSTGRES_USER: password
+      POSTGRES_PASSWORD: password
       WILDFLY_CHOWN: /storage
       WILDFLY_WAIT_FOR: ldap:389 db:5432 #bate na conexão do banco, ele nao resolve ip do host: 192.168.15.22
       # KEYSTORE: /opt/wildfly/standalone/configuration/keystores/keystore.pkcs12
-      # KEYSTORE_PASSWORD: '051390'
+      # KEYSTORE_PASSWORD: '123456789'
     depends_on:
       - ldap
       - db
@@ -69,9 +69,9 @@ services:
     ports:
       - '3004:8081'
     environment:
-      # SSL_PORT: 4443
+      # SSL_PORT: 4443 Porta utilizada para configuração https, substituir acima a 8081.
       PORT: 8081
-      APP_CONFIG: >
+      # APP_CONFIG: >
         window.config = {
           routerBasename: '/',
           extensions: [],

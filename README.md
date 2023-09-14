@@ -41,20 +41,24 @@ sudo systemctl enable docker
 ```bash
 sudo usermod -aG docker SEU_USUARIO (wwg2is)
 ```
-
 > Substitua `SEU_USUARIO` pelo nome do seu usuário no sistema.
 
-# Instruções para Criar uma KeyStore PKCS12 para SSL (HTTPS)
+
+`Caso o sistema operacional seja windows: https://docs.docker.com/desktop/install/windows-install/.`
+
+`Caso o sistema operacional seja macOS: https://docs.docker.com/desktop/install/mac-install/.`
+
+## Instruções para Criar uma KeyStore PKCS12 para SSL (HTTPS)
 
  A KeyStore é utilizada para configurar os certificados SSL do WildFly.
 
-## Passo 1: Preparar os arquivos de chave e certificado
+### Preparar os arquivos de chave e certificado
 
 Primeiro você precisará gerar os seguintes arquvios no WHM:
 - `server.key`: O arquivo de chave privada.
 - `server.crt`: O arquivo de certificado público.
 
-## Passo 2: Criar o arquivo PEM
+### Criar o arquivo PEM
 
 Execute os seguintes comandos para criar um arquivo PEM que contém a chave e o certificado, com um espaço em branco entre eles:
 
@@ -64,7 +68,7 @@ echo "" >> server.pem
 cat server.crt >> server.pem
 ```
 
-## Passo 3: Criar a KeyStore PKCS12
+### Criar a KeyStore PKCS12
 
 Agora, crie a KeyStore PKCS12 usando o arquivo PEM criado no passo anterior. Você precisará fornecer uma senha para a KeyStore. A senha padrão usada neste exemplo é `051390`, mas você pode escolher outra senha se desejar:
 
@@ -76,29 +80,43 @@ Ao executar este comando, você será solicitado a inserir uma senha para a KeyS
 
 **Nota:** Certifique-se de proteger adequadamente a senha da KeyStore, pois ela é usada para acessar a KeyStore e a chave privada associada. Lembre-se de cria-la na pasta path/ especificada.
 
-## Passo 2: Configurações Adicionais
+## Passo 2: Configurar o Contêiner OHIF
 
-### 2.1 Senha de root do WHM
+### 2.1 Atualize o arquivo docker-compose.yml
+
+Edite o arquivo `docker-compose.yml` no contêiner OHIF. Na variável `APP_CONFIG`, altere o valor de `wadoUriRoot` para o domínio que você pretende usar externamente, por exemplo:
+
+```yaml
+wadoUriRoot: 'http://SEU_DOMINIO:PORTA/dcm4chee-arc/aets/DCM4CHEE/wado',
+qidoRoot: 'http://SEU_DOMINIO:PORTA/dcm4chee-arc/aets/DCM4CHEE/rs',
+wadoRoot: 'http://SEU_DOMINIO:PORTA/dcm4chee-arc/aets/DCM4CHEE/rs',
+```
+
+Substitua `SEU_DOMINIO` e `PORTA` pelas informações correspondentes ao seu ambiente.
+
+## Passo 3: Inicialização - WHM/CPANEL
+
+### 3.1 Senha de root do WHM
 
 A senha de root do WHM é geralmente a senha padrão criada durante o acesso ao WHM.
 
-### 2.2 Libere todas as portas no firewall
+### 3.2 Libere todas as portas no firewall
 
 Navegue até a aba HG Firewall Administration.
 Verifique se todas as portas necessárias para o funcionamento do Docker estão liberadas no firewall. Você poderá visualizar as portas utilizadas no arquivo docker-compose.yml. `Certifique-se de que nenhuma dessas portas esteja sendo usada por outros programas`.
 
-### 2.3 Reinicie o Firewall no WHM
+### 3.3 Reinicie o Firewall no WHM
 
 Certifique-se de reiniciar o firewall no WHM após fazer as configurações necessárias.
 
-### 2.4 Reinicie o serviço Docker
+### 3.4 Reinicie o serviço Docker
 
 Antes de reiniciá-lo, verifique se não há outros containers em execução, pois ao reiniciá-lo, todos serão interrompidos e, caso não haja a tag "restart", eles não serão reiniciados.
 ```bash
 sudo systemctl restart docker
 ```
 
-### 2.5 Iniciando containers
+### 3.5 Iniciando containers
 
 Portas liberadas e arquivo docker-compose.yml configurado, agora você já pode iniciar a aplicação com o seguinte comando:
 
@@ -113,7 +131,7 @@ docker ps
 
 Use `docker ps -a` para listar todos os containers, incluindo os que não estão em execução.
 
-### 2.6 Gerenciando os containers
+### 3.6 Gerenciando os containers
 
 - Iniciar/parar um container:
 
@@ -126,20 +144,6 @@ Use `docker ps -a` para listar todos os containers, incluindo os que não estão
   ```bash
   docker container rm NOME/ID_DO_CONTAINER
   ```
-
-## Passo 3: Configurar o Contêiner OHIF
-
-### 3.1 Atualize o arquivo docker-compose.yml
-
-Edite o arquivo `docker-compose.yml` no contêiner OHIF. Na variável `APP_CONFIG`, altere o valor de `wadoUriRoot` para o domínio que você pretende usar externamente, por exemplo:
-
-```yaml
-wadoUriRoot: 'http://SEU_DOMINIO:PORTA/dcm4chee-arc/aets/DCM4CHEE/wado',
-qidoRoot: 'http://SEU_DOMINIO:PORTA/dcm4chee-arc/aets/DCM4CHEE/rs',
-wadoRoot: 'http://SEU_DOMINIO:PORTA/dcm4chee-arc/aets/DCM4CHEE/rs',
-```
-
-Substitua `SEU_DOMINIO` e `PORTA` pelas informações correspondentes ao seu ambiente.
 
 ## Passo 4: Instalando o Unrar para importação de imagens DICOM
 
@@ -178,7 +182,7 @@ Este é um guia básico para configurar o Docker no CentOS e gerenciar imagens e
 
 ---
 
-# Instalação do PostgreSQL no WHM
+# *Adicionais - Instalação do PostgreSQL no WHM
 
 Este guia mostra como instalar o PostgreSQL em seu servidor WHM (Web Host Manager). O PostgreSQL é um sistema de gerenciamento de banco de dados relacional de código aberto, amplamente utilizado para aplicativos da web e de negócios.
 
@@ -233,40 +237,3 @@ sudo systemctl restart httpd
 Agora, você deve ter o PostgreSQL instalado e configurado em seu servidor WHM.
 
 ---
-
-## Integração com o Banco de Dados do Prontuário
-
-Para integrar o banco de dados configurado com o prontuário, siga os passos abaixo no arquivo `config/app.php`.
-
-1. Localize a seção de configuração de conexão com o banco de dados do prontuário. Você encontrará algo semelhante a:
-
-```php
-'pacs_docker_db' => [
-    'className' => 'Cake\Database\Connection',
-    'driver' => 'Cake\Database\Driver\Postgres',
-    'persistent' => false,
-    'host' => 'IP_DO_SERVIDOR',
-    'port' => '5433',
-    'username' => 'pacs',
-    'password' => 'pacs',
-    'database' => 'pacsdb_g2i',
-    'encoding' => 'utf8',
-    'flags' => [],
-    'cacheMetadata' => true,
-    'log' => false,
-    'quoteIdentifiers' => false,
-    'url' => env('DATABASE_URL', null),
-]
-```
-
-2. Faça as seguintes configurações, se necessário:
-
-   - `host`: O endereço IP ou nome do host onde o banco de dados está hospedado.
-   - `port`: A porta na qual o banco de dados está escutando. Normalmente, a porta padrão para PostgreSQL é 5432, mas no seu caso, é 5433.
-   - `username`: O nome de usuário usado para se conectar ao banco de dados.
-   - `password`: A senha do usuário para autenticação no banco de dados.
-   - `database`: O nome do banco de dados que você deseja usar para a integração.
-   - `encoding`: A codificação de caracteres usada pelo banco de dados.
-   - `quoteIdentifiers`: Configure como `true` se você estiver usando palavras reservadas ou caracteres especiais em nomes de tabelas ou colunas.
-
-3. Salve as alterações no arquivo `config/app.php`.
