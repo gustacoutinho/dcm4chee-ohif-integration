@@ -217,23 +217,3 @@ Para garantir que o PostgreSQL seja iniciado automaticamente com o sistema, use 
 ```bash
 sudo systemctl enable postgresql-13
 ```
-
-## Instale a extensão PostgreSQL para PHP
-
-Se você deseja usar o PostgreSQL com PHP, instale a extensão do PostgreSQL para PHP com o seguinte comando:
-
-```bash
-sudo yum install php-pgsql
-```
-
-## Reinicie seu servidor web
-
-Depois de concluir todas as etapas acima, é recomendável reiniciar o servidor web para aplicar as alterações:
-
-```bash
-sudo systemctl restart httpd
-```
-
-Agora, você deve ter o PostgreSQL instalado e configurado em seu servidor WHM.
-
----
